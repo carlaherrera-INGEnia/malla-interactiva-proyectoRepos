@@ -1,0 +1,50 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-image: url('../imagenes/fondo.png');
+    background-size: cover;
+    background-position: center;
+    color: white;
+}
+
+.header {
+    padding: 20px;
+    text-align: center;
+}
+
+.header h1 {
+    font-size: 28px;
+}
+
+.logo-text {
+    font-size: 40px;
+    font-weight: bold;
+}
+
+.header-info {
+    margin-top: 10px;
+}
+
+.malla-container {
+    padding: 20px;
+}
+
+.year-headers,
+.semester-headers,
+.courses-container {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 10px;
+}
+
+.year-header,
+.semester-header {
+    text-align: center;
+    padding: 10px;
+    border: 1px solid #ccc;
+}

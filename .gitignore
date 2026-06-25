@@ -1,0 +1,8 @@
+# Editor de código (VSCode)
+.vscode/
+
+# Sistema operativo: Windows 
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
