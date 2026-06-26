@@ -439,3 +439,12 @@ const courses = {
         category: 'Plan común'
     }
 };
+
+// Estado de la aplicación
+let approvedCourses = new Set();
+let totalCredits = 0;
+
+// Calcular créditos totales
+Object.values(courses).forEach(course => {
+    totalCredits += course.credits;
+});
