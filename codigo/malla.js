@@ -448,3 +448,52 @@ let totalCredits = 0;
 Object.values(courses).forEach(course => {
     totalCredits += course.credits;
 });
+
+// Inicializar la malla
+function initMalla() {
+    renderCourses();
+}
+
+// Renderizar los cursos en la malla
+function renderCourses() {
+    const container = document.getElementById('coursesContainer');
+
+    if (!container) {
+        return;
+    }
+
+    container.innerHTML = '';
+
+    // Crear las 10 columnas (1 por semestre)
+    for (let semester = 1; semester <= 10; semester++) {
+        const column = document.createElement('div');
+        column.className = 'semester-column';
+
+        const semesterCourses = Object.values(courses)
+            .filter(course => course.semester === semester);
+
+        semesterCourses.forEach(course => {
+            const courseElement = createCourseElement(course);
+            column.appendChild(courseElement);
+        });
+
+        container.appendChild(column);
+    }
+}
+
+// Crear un elemento visual para cada ramo
+function createCourseElement(course) {
+    const div = document.createElement('div');
+    div.className = 'course';
+    div.id = course.id;
+
+    div.innerHTML = `
+        <div class="course-name">${course.name}</div>
+        <div class="course-credits">${course.credits} SCT</div>
+    `;
+
+    return div;
+}
+
+// Ejecutar al cargar la página
+document.addEventListener('DOMContentLoaded', initMalla);
