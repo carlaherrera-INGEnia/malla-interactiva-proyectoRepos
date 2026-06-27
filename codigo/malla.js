@@ -481,19 +481,133 @@ function renderCourses() {
     }
 }
 
-// Crear un elemento visual para cada ramo
 function createCourseElement(course) {
     const div = document.createElement('div');
     div.className = 'course';
     div.id = course.id;
+    div.dataset.courseId = course.id;
+    div.dataset.category = course.category || 'Plan común';
+    div.style.background = 'rgba(255, 255, 255, 0.98)';
+    div.style.color = '#18212f';
+    div.style.padding = '0';
+    div.style.borderRadius = '10px';
+    div.style.cursor = 'pointer';
+    div.style.transition = 'transform 0.2s ease, box-shadow 0.2s ease';
+    div.style.minHeight = '108px';
+    div.style.height = '108px';
+    div.style.display = 'flex';
+    div.style.flexDirection = 'column';
+    div.style.position = 'relative';
+    div.style.boxShadow = '0 10px 24px rgba(0,0,0,0.22)';
+    div.style.border = '1px solid rgba(24, 33, 47, 0.12)';
+    div.style.overflow = 'hidden';
+
+    // Determinar el estado del curso
+    const status = getCourseStatus(course);
+    div.classList.add(status);
+    
+    // Agregar clase especial si tiene información especial
+    if (course.specialInfo) {
+        div.classList.add('special-course');
+        div.setAttribute('title', course.specialInfo);
+    }
 
     div.innerHTML = `
-        <div class="course-name">${course.name}</div>
-        <div class="course-credits">${course.credits} SCT</div>
+        <div class="course-category" style="background:${getCategoryColor(course.category)};color:#000;padding:5px 8px;font-size:8px;font-weight:700;text-transform:uppercase;text-align:left;">${course.category || 'Plan común'}</div>
+        <div class="course-name" style="font-weight:700;font-size:10px;line-height:1.2;word-wrap:break-word;text-align:center;flex:1;display:flex;align-items:center;justify-content:center;padding:8px 6px;color:${getCourseNameColor(status)};text-transform:uppercase;">${course.name}${course.specialInfo ? ' ★' : ''}</div>
+        <div class="course-credits" style="font-size:8px;font-weight:700;padding:5px 8px;text-align:left;background:#666;color:white;">${course.credits} SCT</div>
     `;
+    if (status === 'locked') {
+        div.style.opacity = '0.92';
+        div.style.filter = 'grayscale(0.15)';
+    }
+    if (status === 'approved') {
+        div.style.boxShadow = '0 10px 24px rgba(76, 175, 80, 0.45)';
+    }
+
+    // Agregar evento de clic solo si no está bloqueado
+    if (status !== 'locked') {
+        div.addEventListener('click', () => toggleCourse(course.id));
+    }
 
     return div;
 }
 
 // Ejecutar al cargar la página
 document.addEventListener('DOMContentLoaded', initMalla);
+
+
+
+
+
+
+
+function getCourseStatus(course) {
+    if (approvedCourses.has(course.id)) {
+        return 'approved';
+    }
+
+    // Verificar prerrequisitos
+    const prerequisitesMet = course.prerequisites.every(prereq => 
+        approvedCourses.has(prereq)
+    );
+
+    // Verificar créditos mínimos si es necesario
+    if (course.requiresMinCredits) {
+        const currentCredits = calculateApprovedCredits();
+        if (currentCredits < course.requiresMinCredits) {
+            return 'locked';
+        }
+    }
+
+    // Verificar si requiere todos los cursos aprobados
+    if (course.requiresAllCourses) {
+        const allOtherCourses = Object.keys(courses).filter(id => id !== course.id);
+        const allApproved = allOtherCourses.every(id => approvedCourses.has(id));
+        if (!allApproved) {
+            return 'locked';
+        }
+    }
+
+    if (prerequisitesMet) {
+        return 'available';
+    }
+
+    return 'locked';
+}
+
+// Alternar el estado de un curso
+function toggleCourse(courseId) {
+    if (approvedCourses.has(courseId)) {
+        removeCourseAndDependents(courseId);
+    } else {
+        approvedCourses.add(courseId);
+    }
+
+    normalizeApprovedCourses();
+    saveToLocalStorage();
+    renderCourses();
+    updateCreditsInfo();
+}
+
+
+function calculateApprovedCreditsExcluding(courseId) {
+    let credits = 0;
+    approvedCourses.forEach(function (id) {
+        if (id !== courseId && courses[id]) {
+            credits += courses[id].credits;
+        }
+    });
+    return credits;
+}
+
+// Calcular créditos aprobados
+function calculateApprovedCredits() {
+    let credits = 0;
+    approvedCourses.forEach(courseId => {
+        if (courses[courseId]) {
+            credits += courses[courseId].credits;
+        }
+    });
+    return credits;
+}
