@@ -634,6 +634,103 @@ function loadFromLocalStorage() {
         approvedCourses = new Set();
     }
 }
+
+async function captureExportArea() {
+    if (typeof html2canvas !== 'function') {
+        throw new Error('html2canvas no está disponible');
+    }
+
+    const baseContainer = document.querySelector('.malla-container');
+    const containerWidth = baseContainer ? baseContainer.offsetWidth : 1200;
+    const sourceNodes = [
+        document.querySelector('.header'),
+        document.querySelector('.malla-container'),
+        document.querySelector('.legend'),
+        document.querySelector('.credits-info')
+    ].filter(Boolean);
+
+    const wrapper = document.createElement('div');
+    wrapper.style.position = 'absolute';
+    wrapper.style.left = '0';
+    wrapper.style.top = '0';
+    wrapper.style.padding = '20px';
+    wrapper.style.background = '#ffffff';
+    wrapper.style.display = 'flex';
+    wrapper.style.flexDirection = 'column';
+    wrapper.style.gap = '20px';
+    wrapper.style.width = containerWidth + 'px';
+
+    sourceNodes.forEach(function (node) {
+        const clone = node.cloneNode(true);
+        if (clone.classList.contains('malla-container')) {
+            clone.style.overflow = 'visible';
+            clone.style.width = '100%';
+        }
+        const buttons = clone.querySelector('.buttons');
+        if (buttons) {
+            buttons.remove();
+        }
+        wrapper.appendChild(clone);
+    });
+
+    document.body.appendChild(wrapper);
+
+    try {
+        return await html2canvas(wrapper, {
+            backgroundColor: '#ffffff',
+            scale: 2,
+            logging: false,
+            useCORS: true,
+            allowTaint: false,
+            foreignObjectRendering: false,
+            scrollX: 0,
+            scrollY: 0,
+            windowWidth: wrapper.offsetWidth,
+            windowHeight: wrapper.scrollHeight,
+            onclone: function (clonedDoc) {
+                const style = clonedDoc.createElement('style');
+                style.textContent = `
+                    body, html {
+                        background: #ffffff !important;
+                    }
+                    body::before,
+                    .header::before,
+                    .malla-container::before,
+                    .legend::before,
+                    .credits-info::before,
+                    .practice-section::before {
+                        display: none !important;
+                        content: none !important;
+                    }
+                    * {
+                        -webkit-backdrop-filter: none !important;
+                        backdrop-filter: none !important;
+                    }
+                `;
+                clonedDoc.head.appendChild(style);
+                clonedDoc.querySelectorAll('.course.approved').forEach(function (course) {
+                    const strike = clonedDoc.createElement('div');
+                    strike.style.position = 'absolute';
+                    strike.style.left = '8px';
+                    strike.style.right = '8px';
+                    strike.style.top = '50%';
+                    strike.style.height = '2px';
+                    strike.style.background = '#111111';
+                    strike.style.transform = 'translateY(-50%) rotate(-8deg)';
+                    strike.style.zIndex = '5';
+                    course.style.position = 'relative';
+                    course.appendChild(strike);
+                });
+            }
+        });
+    } finally {
+        if (document.body.contains(wrapper)) {
+            document.body.removeChild(wrapper);
+        }
+    }
+}
+
+
 function loadMalla() {
     const input = document.createElement('input');
     input.type = 'file';
