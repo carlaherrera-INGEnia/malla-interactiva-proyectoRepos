@@ -76,3 +76,25 @@
             <p>ℹ️ La Práctica Profesional requiere: Ética y Responsabilidad Social aprobada + 150 créditos. Duración: 320 horas</p>
         </div>
     </div>
+    <div class="credits-info">
+        <div><strong>Créditos aprobados: <span id="approvedCredits">0</span> SCT (<span id="percentage">0</span>%)</strong></div>
+        <div class="buttons">
+            <button class="btn btn-primary" onclick="resetCourses()">Limpiar ramos aprobados</button>
+            <button class="btn btn-secondary" id="exportBtn" onclick="openExportModal()">Descargar PNG</button>
+        </div>
+        <div class="credits-text">
+            Créditos a Cesar Paulangelo, Ingeniero Civil en Informática - Idea original
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="dialogModal" aria-hidden="true">
+        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="dialogTitle">
+            <h3 id="dialogTitle"></h3>
+            <p id="dialogMessage"></p>
+            <div class="modal-actions" id="dialogActions"></div>
+        </div>
+    </div>
+
+    <script src="malla.js?v=4"></script>
+</body>
+</html>

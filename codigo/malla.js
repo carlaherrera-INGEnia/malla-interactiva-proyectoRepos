@@ -451,7 +451,9 @@ Object.values(courses).forEach(course => {
 
 // Inicializar la malla
 function initMalla() {
+    loadFromLocalStorage();
     renderCourses();
+    updateCreditsInfo();
 }
 
 // Renderizar los cursos en la malla
@@ -610,4 +612,59 @@ function calculateApprovedCredits() {
         }
     });
     return credits;
+}
+function saveToLocalStorage() {
+    try {
+        localStorage.setItem(
+            'mallaApprovedCourses',
+            JSON.stringify([...approvedCourses])
+        );
+    } catch (error) {
+        console.warn('No se pudo guardar el estado:', error);
+    }
+}
+function loadFromLocalStorage() {
+    try {
+        const saved = localStorage.getItem('mallaApprovedCourses');
+
+        if (saved) {
+            approvedCourses = new Set(JSON.parse(saved));
+        }
+    } catch (error) {
+        approvedCourses = new Set();
+    }
+}
+function loadMalla() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/json';
+
+    input.onchange = (e) => {
+        const file = e.target.files[0];
+
+        if (!file) return;
+
+        const reader = new FileReader();
+
+        reader.onload = (event) => {
+            try {
+                const data = JSON.parse(event.target.result);
+
+                approvedCourses = new Set(data.approvedCourses);
+
+                normalizeApprovedCourses();
+                saveToLocalStorage();
+                renderCourses();
+                updateCreditsInfo();
+
+                alert('Malla cargada exitosamente');
+            } catch (error) {
+                alert('Error al cargar el archivo');
+            }
+        };
+
+        reader.readAsText(file);
+    };
+
+    input.click();
 }
