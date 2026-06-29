@@ -451,7 +451,14 @@ Object.values(courses).forEach(course => {
 
 // Inicializar la malla
 function initMalla() {
+    try {
+        loadFromLocalStorage();
+        normalizeApprovedCourses();
+    } catch (error) {
+        console.warn('No se pudo cargar el estado guardado:', error);
+    }
     renderCourses();
+    updateCreditsInfo();
 }
 
 // Renderizar los cursos en la malla
@@ -533,14 +540,43 @@ function createCourseElement(course) {
     return div;
 }
 
+// Obtener el estado de un curso
+function getCourseStatus(course) {
+    if (approvedCourses.has(course.id)) {
+        return 'approved';
+    }
+
+    // Verificar prerrequisitos
+    const prerequisitesMet = course.prerequisites.every(prereq => 
+        approvedCourses.has(prereq)
+    );
+
+    // Verificar créditos mínimos si es necesario
+    if (course.requiresMinCredits) {
+        const currentCredits = calculateApprovedCredits();
+        if (currentCredits < course.requiresMinCredits) {
+            return 'locked';
+        }
+    }
+
+    // Verificar si requiere todos los cursos aprobados
+    if (course.requiresAllCourses) {
+        const allOtherCourses = Object.keys(courses).filter(id => id !== course.id);
+        const allApproved = allOtherCourses.every(id => approvedCourses.has(id));
+        if (!allApproved) {
+            return 'locked';
+        }
+    }
+
+    if (prerequisitesMet) {
+        return 'available';
+    }
+
+    return 'locked';
+}
+
 // Ejecutar al cargar la página
 document.addEventListener('DOMContentLoaded', initMalla);
-
-
-
-
-
-
 
 function getCourseStatus(course) {
     if (approvedCourses.has(course.id)) {
@@ -590,6 +626,21 @@ function toggleCourse(courseId) {
     updateCreditsInfo();
 }
 
+function removeCourseAndDependents(courseId, visited) {
+    const seen = visited || new Set();
+    if (seen.has(courseId)) {
+        return;
+    }
+
+    seen.add(courseId);
+    approvedCourses.delete(courseId);
+
+    Object.values(courses).forEach(function (course) {
+        if (course.prerequisites && course.prerequisites.includes(courseId) && approvedCourses.has(course.id)) {
+            removeCourseAndDependents(course.id, seen);
+        }
+    });
+}
 
 function calculateApprovedCreditsExcluding(courseId) {
     let credits = 0;
