@@ -451,46 +451,85 @@ Object.values(courses).forEach(course => {
 
 // Inicializar la malla
 function initMalla() {
-<<<<<<< HEAD
-    loadFromLocalStorage();
-=======
     try {
         loadFromLocalStorage();
         normalizeApprovedCourses();
     } catch (error) {
         console.warn('No se pudo cargar el estado guardado:', error);
     }
->>>>>>> feature-estados
     renderCourses();
     updateCreditsInfo();
 }
 
-// Renderizar los cursos en la malla
+// Renderizar los cursos 
+
 function renderCourses() {
     const container = document.getElementById('coursesContainer');
+    container.innerHTML = '';
+    container.style.display = 'grid';
+    container.style.gridTemplateColumns = 'repeat(10, minmax(0, 1fr))';
+    container.style.gap = '6px';
+    container.style.alignItems = 'start';
 
+    const practiceCourse = courses['s8_practica'];
+    const coursesBySemester = {};
+
+    Object.values(courses).forEach(course => {
+        if (course.id === 's8_practica') {
+            return;
+        }
+
+        if (!coursesBySemester[course.semester]) {
+            coursesBySemester[course.semester] = [];
+        }
+        coursesBySemester[course.semester].push(course);
+    });
+
+    for (let i = 1; i <= 10; i++) {
+        const column = document.createElement('div');
+        column.className = 'semester-column';
+        column.style.display = 'flex';
+        column.style.flexDirection = 'column';
+        column.style.gap = '6px';
+        column.style.minWidth = '0';
+        column.style.width = '100%';
+
+        if (coursesBySemester[i]) {
+            coursesBySemester[i].forEach(course => {
+                const courseElement = createCourseElement(course);
+                column.appendChild(courseElement);
+            });
+        }
+
+        container.appendChild(column);
+    }
+
+    renderPracticeSection(practiceCourse);
+}
+
+
+function renderPracticeSection(practiceCourse) {
+    const container = document.getElementById('practiceCourses');
     if (!container) {
         return;
     }
 
     container.innerHTML = '';
+    container.style.display = 'flex';
+    container.style.justifyContent = 'center';
+    container.style.paddingTop = '10px';
 
-    // Crear las 10 columnas (1 por semestre)
-    for (let semester = 1; semester <= 10; semester++) {
-        const column = document.createElement('div');
-        column.className = 'semester-column';
-
-        const semesterCourses = Object.values(courses)
-            .filter(course => course.semester === semester);
-
-        semesterCourses.forEach(course => {
-            const courseElement = createCourseElement(course);
-            column.appendChild(courseElement);
-        });
-
-        container.appendChild(column);
+    if (!practiceCourse) {
+        return;
     }
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'practice-course-wrapper';
+    wrapper.style.width = 'min(280px, 100%)';
+    wrapper.appendChild(createCourseElement(practiceCourse));
+    container.appendChild(wrapper);
 }
+
 
 function createCourseElement(course) {
     const div = document.createElement('div');
