@@ -524,3 +524,62 @@ body::before {
     font-style: italic;
     text-align: center;
 }
+
+// Parte de la práctica
+
+.practice-section {
+    margin-top: 20px;
+    padding: 18px;
+    background-image: url('fondo.png');
+    background-size: cover;
+    background-position: center;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    position: relative;
+}
+
+.practice-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url('fondo.png');
+    background-size: cover;
+    background-position: center;
+    filter: blur(5px);
+    z-index: 0;
+    border-radius: 8px;
+    pointer-events: none;
+}
+
+.practice-section > * {
+    position: relative;
+    z-index: 1;
+}
+
+.practice-section-header {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 18px;
+    border-radius: 999px;
+    background: rgba(52, 73, 94, 0.95);
+    color: #fff;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 13px;
+}
+
+.practice-courses {
+    display: flex;
+    justify-content: center;
+    padding-top: 14px;
+}
+
+.practice-course-wrapper {
+    width: min(360px, 100%);
+}
+
+.practice-course-wrapper .course {
+    width: 100%;
+}
