@@ -530,7 +530,7 @@ function renderPracticeSection(practiceCourse) {
     container.appendChild(wrapper);
 }
 
-
+// Crear elemento de curso
 function createCourseElement(course) {
     const div = document.createElement('div');
     div.className = 'course';
@@ -618,43 +618,6 @@ function getCourseStatus(course) {
     return 'locked';
 }
 
-// Ejecutar al cargar la página
-document.addEventListener('DOMContentLoaded', initMalla);
-
-function getCourseStatus(course) {
-    if (approvedCourses.has(course.id)) {
-        return 'approved';
-    }
-
-    // Verificar prerrequisitos
-    const prerequisitesMet = course.prerequisites.every(prereq => 
-        approvedCourses.has(prereq)
-    );
-
-    // Verificar créditos mínimos si es necesario
-    if (course.requiresMinCredits) {
-        const currentCredits = calculateApprovedCredits();
-        if (currentCredits < course.requiresMinCredits) {
-            return 'locked';
-        }
-    }
-
-    // Verificar si requiere todos los cursos aprobados
-    if (course.requiresAllCourses) {
-        const allOtherCourses = Object.keys(courses).filter(id => id !== course.id);
-        const allApproved = allOtherCourses.every(id => approvedCourses.has(id));
-        if (!allApproved) {
-            return 'locked';
-        }
-    }
-
-    if (prerequisitesMet) {
-        return 'available';
-    }
-
-    return 'locked';
-}
-
 // Alternar el estado de un curso
 function toggleCourse(courseId) {
     if (approvedCourses.has(courseId)) {
@@ -685,6 +648,33 @@ function removeCourseAndDependents(courseId, visited) {
     });
 }
 
+function normalizeApprovedCourses() {
+    let changed = true;
+
+    while (changed) {
+        changed = false;
+
+        Object.values(courses).forEach(function (course) {
+            if (!approvedCourses.has(course.id)) {
+                return;
+            }
+
+            const prerequisitesMet = course.prerequisites.every(function (prereq) {
+                return approvedCourses.has(prereq);
+            });
+            const creditsOk = !course.requiresMinCredits || calculateApprovedCreditsExcluding(course.id) >= course.requiresMinCredits;
+            const allCoursesOk = !course.requiresAllCourses || Object.keys(courses).every(function (id) {
+                return id === course.id || approvedCourses.has(id);
+            });
+
+            if (!prerequisitesMet || !creditsOk || !allCoursesOk) {
+                approvedCourses.delete(course.id);
+                changed = true;
+            }
+        });
+    }
+}
+
 function calculateApprovedCreditsExcluding(courseId) {
     let credits = 0;
     approvedCourses.forEach(function (id) {
@@ -705,6 +695,38 @@ function calculateApprovedCredits() {
     });
     return credits;
 }
+
+// Actualizar información de créditos
+function updateCreditsInfo() {
+    const approvedCredits = calculateApprovedCredits();
+    const percentage = ((approvedCredits / totalCredits) * 100).toFixed(1);
+
+    document.getElementById('approvedCredits').textContent = approvedCredits;
+    document.getElementById('percentage').textContent = percentage;
+}
+
+// Reiniciar cursos
+function resetCourses() {
+    openResetModal();
+}
+
+function openResetModal() {
+    openDialog(
+        'Limpiar ramos aprobados',
+        '¿Estás seguro de que quieres limpiar todos los ramos aprobados?',
+        [
+            { label: 'Cancelar', className: 'btn-secondary', onClick: function () {} },
+            { label: 'Limpiar', className: 'btn-danger', onClick: function () {
+                approvedCourses.clear();
+                saveToLocalStorage();
+                renderCourses();
+                updateCreditsInfo();
+            } }
+        ]
+    );
+}
+
+// Guardar en localStorage
 function saveToLocalStorage() {
     try {
         localStorage.setItem(
@@ -715,6 +737,34 @@ function saveToLocalStorage() {
         console.warn('No se pudo guardar el estado:', error);
     }
 }
+
+function getCategoryColor(category) {
+    if (category === 'Especialidad') {
+        return '#41e175';
+    }
+    if (category === 'Plan común') {
+        return '#ffeb3b';
+    }
+    if (category === 'Idioma/F.G') {
+        return 'white';
+    }
+    if (category === 'Electivo/Minor') {
+        return '#dcb494';
+    }
+    return '#666';
+}
+
+function getCourseNameColor(status) {
+    if (status === 'approved') {
+        return 'white';
+    }
+    if (status === 'available') {
+        return '#18212f';
+    }
+    return '#18212f';
+}
+
+// Cargar desde localStorage
 function loadFromLocalStorage() {
     try {
         const saved = localStorage.getItem('mallaApprovedCourses');
@@ -726,6 +776,104 @@ function loadFromLocalStorage() {
         approvedCourses = new Set();
     }
 }
+
+function openExportModal() {
+    downloadMalla();
+}
+
+function openDialog(title, message, actions) {
+    const modal = document.getElementById('dialogModal');
+    const titleEl = document.getElementById('dialogTitle');
+    const messageEl = document.getElementById('dialogMessage');
+    const actionsEl = document.getElementById('dialogActions');
+
+    if (!modal || !titleEl || !messageEl || !actionsEl) {
+        return;
+    }
+
+    titleEl.textContent = title;
+    messageEl.textContent = message;
+    actionsEl.innerHTML = '';
+
+    actions.forEach(action => {
+        const button = document.createElement('button');
+        button.className = 'btn ' + action.className;
+        button.textContent = action.label;
+        button.addEventListener('click', function () {
+            closeDialog();
+            if (action.onClick) {
+                action.onClick();
+            }
+        });
+        actionsEl.appendChild(button);
+    });
+
+    modal.classList.add('is-open');
+    modal.setAttribute('aria-hidden', 'false');
+}
+
+function closeDialog() {
+    const modal = document.getElementById('dialogModal');
+    if (!modal) {
+        return;
+    }
+
+    modal.classList.remove('is-open');
+    modal.setAttribute('aria-hidden', 'true');
+}
+
+async function downloadMalla() {
+    try {
+        const canvas = await captureExportArea();
+        const date = new Date().toISOString().split('T')[0];
+        const filename = 'mi_malla_' + date + '.png';
+        const pngBlob = await canvasToBlob(canvas, 'image/png');
+        triggerDownload(pngBlob, filename);
+
+        openDialog(
+            'Exportación exitosa',
+            'Se descargó ' + filename + ' correctamente.',
+            [
+                { label: 'Aceptar', className: 'btn-primary', onClick: function () {} }
+            ]
+        );
+    } catch (err) {
+        openDialog('Error al exportar', 'No se pudo generar la descarga: ' + err.message, [
+            { label: 'Cerrar', className: 'btn-secondary', onClick: function () {} }
+        ]);
+    }
+}
+
+function canvasToBlob(canvas, type) {
+    return new Promise(function (resolve, reject) {
+        if (!canvas.toBlob) {
+            reject(new Error('El navegador no soporta exportación de imagen'));
+            return;
+        }
+
+        canvas.toBlob(function (blob) {
+            if (!blob) {
+                reject(new Error('No se pudo crear la imagen'));
+                return;
+            }
+            resolve(blob);
+        }, type);
+    });
+}
+
+function triggerDownload(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(function () {
+        URL.revokeObjectURL(url);
+    }, 1000);
+}
+
 
 async function captureExportArea() {
     if (typeof html2canvas !== 'function') {
@@ -822,7 +970,7 @@ async function captureExportArea() {
     }
 }
 
-
+// Cargar malla (importar)
 function loadMalla() {
     const input = document.createElement('input');
     input.type = 'file';
@@ -857,3 +1005,6 @@ function loadMalla() {
 
     input.click();
 }
+
+// Inicializar al cargar la página
+document.addEventListener('DOMContentLoaded', initMalla);
