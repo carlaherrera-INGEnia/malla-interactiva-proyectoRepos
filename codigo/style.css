@@ -525,7 +525,7 @@ body::before {
     text-align: center;
 }
 
-// Parte de la práctica
+/* Parte de la práctica */
 
 .practice-section {
     margin-top: 20px;
@@ -582,4 +582,136 @@ body::before {
 
 .practice-course-wrapper .course {
     width: 100%;
+}
+
+buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+    padding: 18px;
+    background-image: url('fondo.png');
+    background-size: cover;
+    background-position: center;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    position: relative;
+}
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    transition: all 0.3s;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.btn-primary {
+    background: #3498db;
+    color: white;
+}
+
+.btn-secondary {
+    background: #9b59b6;
+    color: white;
+}
+
+.btn-success {
+    background: #27ae60;
+    color: #18212f;
+}
+
+.btn-danger {
+    background: #e74c3c;
+    color: white;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background-image: url('fondo.png');
+    background-size: cover;
+    background-position: center;
+    filter: blur(5px);
+    z-index: 0;
+    border-radius: 8px;
+    pointer-events: none;
+}
+
+.practice-section > * {
+    position: relative;
+    z-index: 1;
+}
+
+.practice-section-header {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 18px;
+    border-radius: 999px;
+    background: rgba(52, 73, 94, 0.95);
+    color: #fff;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 13px;
+}
+
+.practice-courses {
+    display: flex;
+    justify-content: center;
+    padding-top: 14px;
+}
+
+.modal-card {
+    width: min(520px, 100%);
+    background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(241, 245, 249, 0.98));
+    color: #18212f;
+    border-radius: 20px;
+    padding: 28px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.35);
+    border: 1px solid rgba(255,255,255,0.35);
+    animation: modalPop 0.18s ease-out;
+}
+
+.modal-card h3 {
+    margin: 0 0 12px;
+    font-size: 24px;
+}
+
+.modal-card p {
+    margin: 0;
+    line-height: 1.5;
+    color: #334155;
+}
+
+.modal-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 22px;
+}
+
+@keyframes modalPop {
+    from {
+        transform: translateY(12px) scale(0.98);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
 }
