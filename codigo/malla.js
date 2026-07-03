@@ -874,7 +874,6 @@ function triggerDownload(blob, filename) {
     }, 1000);
 }
 
-
 async function captureExportArea() {
     if (typeof html2canvas !== 'function') {
         throw new Error('html2canvas no está disponible');
