@@ -682,7 +682,7 @@ function normalizeApprovedCourses() {
 
 function calculateApprovedCreditsExcluding(courseId) {
     let credits = 0;
-    approvedCourses.forEach(function (id) {
+    approvedCourses.forEach(id => {
         if (id !== courseId && courses[id]) {
             credits += courses[id].credits;
         }
