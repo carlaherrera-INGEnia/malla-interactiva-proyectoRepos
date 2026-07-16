@@ -155,7 +155,7 @@ const courses = {
         id: 's4_etica',
         name: 'Ética y Responsabilidad Social en Ingeniería',
         credits: 3,
-        semester: 5,
+        semester: 4,
         prerequisites: ['s3_comunicacion', 's1_intro_ingenieria'],
         category: 'Plan común'
     },
@@ -355,7 +355,7 @@ const courses = {
         id: 's8_practica',
         name: 'Práctica Profesional',
         credits: 12,
-        semester: 11,
+        semester: 8,
         prerequisites: ['s4_etica'],
         requiresMinCredits: 150,
         category: 'Plan común',
