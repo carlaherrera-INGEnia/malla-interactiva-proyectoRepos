@@ -479,10 +479,15 @@ function renderCourses() {
             return;
         }
 
-        if (!coursesBySemester[course.semester]) {
-            coursesBySemester[course.semester] = [];
+        // Validación para asegurar que el semestre esté entre 1 y 10
+        let validSemester = course.semester;
+        if (validSemester < 1) validSemester = 1;
+        if (validSemester > 10) validSemester = 10;
+
+        if (!coursesBySemester[validSemester]) {
+            coursesBySemester[validSemester] = [];
         }
-        coursesBySemester[course.semester].push(course);
+        coursesBySemester[validSemester].push(course);
     });
 
     for (let i = 1; i <= 10; i++) {
