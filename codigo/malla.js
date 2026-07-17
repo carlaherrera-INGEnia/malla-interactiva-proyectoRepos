@@ -481,9 +481,15 @@ function renderCourses() {
 
         // Validación para asegurar que el semestre esté entre 1 y 10
         let validSemester = course.semester;
-        if (validSemester < 1) validSemester = 1;
-        if (validSemester > 10) validSemester = 10;
-
+        if (validSemester < 1) {
+            console.warn(`Alerta: el curso ${course.id} tiene un semestre menor a 1. Se ajustará a 1 al renderizar.`);
+            validSemester = 1;
+        }
+        if (validSemester > 10) {
+            console.warn(`Alerta: el curso ${course.id} tiene un semestre mayor a 10. Se ajustará a 10 al renderizar.`);
+            validSemester = 10;
+        }
+        
         if (!coursesBySemester[validSemester]) {
             coursesBySemester[validSemester] = [];
         }
@@ -646,7 +652,7 @@ function removeCourseAndDependents(courseId, visited) {
     seen.add(courseId);
     approvedCourses.delete(courseId);
 
-    Object.values(courses).forEach(function (course) {
+    Object.values(courses).forEach(course => {
         if (course.prerequisites && course.prerequisites.includes(courseId) && approvedCourses.has(course.id)) {
             removeCourseAndDependents(course.id, seen);
         }
@@ -659,16 +665,16 @@ function normalizeApprovedCourses() {
     while (changed) {
         changed = false;
 
-        Object.values(courses).forEach(function (course) {
+        Object.values(courses).forEach(course => {
             if (!approvedCourses.has(course.id)) {
                 return;
             }
 
-            const prerequisitesMet = course.prerequisites.every(function (prereq) {
+            const prerequisitesMet = course.prerequisites.every(prereq => {
                 return approvedCourses.has(prereq);
             });
             const creditsOk = !course.requiresMinCredits || calculateApprovedCreditsExcluding(course.id) >= course.requiresMinCredits;
-            const allCoursesOk = !course.requiresAllCourses || Object.keys(courses).every(function (id) {
+            const allCoursesOk = !course.requiresAllCourses || Object.keys(courses).every(id => {
                 return id === course.id || approvedCourses.has(id);
             });
 
